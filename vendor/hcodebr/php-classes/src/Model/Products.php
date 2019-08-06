@@ -20,18 +20,19 @@ class Products extends Model {
 
 	   public function save(){
 	      	$sql = new Sql();
-                $results = $sql->select("CALL sp_products_save(:idproduct, :desproduct, :vlprice ,:vlwidth, :vlheigth, :vllength, :vlweight, :desurl)",array(
+                $results = $sql->select("CALL sp_products_save(:idproduct, :desproduct, :vlprice ,:vlwidth, :vlheight, :vllength, :vlweight, :desurl)",array(
 	               ":idproduct"=> $this->getidproduct(),
 	               ":desproduct"=> $this->getdesproduct(),
 	               ":vlprice"=> $this->getvlprice(),
 	               ":vlwidth"=> $this->getvlwidth(),
-	               ":vlheigth"=> $this->getvlheigth(),
+	               ":vlheight"=> $this->getvlheight(),
 	      	       ":vllength"=> $this->getvllength(),
-	      	       ":vlweight"=> $this->getvlweigth(),
+	      	       ":vlweight"=> $this->getvlweight(),
 	      	       ":desurl"=> $this->getdesurl()	
 	      		));
+               
 
-	      
+	
 	      	$this->setData($results[0]);
 
 	      }
@@ -41,26 +42,88 @@ class Products extends Model {
 
 	      	$sql = new Sql();
 
-	      	$results=$sql->select("SELECT *FROM tb_idproducts WHERE idproduct= :idproduct",[
-                ":idproduct"=>$idproduct
+	      	$results=$sql->select("SELECT *FROM tb_products WHERE idproduct = :idproduct",[
+                ':idproduct' => $idproduct
 	      		]);
-      
+            
            $this->setData($results[0]);
 	      }
 
 	      public function delete(){
 
-               $sql =new Sql();
-
-               $sql->query("DELETE FROM tb_idproduct WHERE idproduct=:idproduct",[
+               $sql = new Sql();
+               $sql->query("DELETE FROM tb_products WHERE idproduct=:idproduct",[
                  ":idproduct"=>$this->getidproduct()
                	
                	]);
                  
-               
+               Products::updateFile();
 	      }
+	     
 		  
 		  
+      public function checkPhoto(){
+         
+      	if(file_exists(
+      		$_SERVER['DOCUMENT_ROOT'] .DIRECTORY_SEPARATOR .
+      		"res" .DIRECTORY_SEPARATOR. 
+      		"site".DIRECTORY_SEPARATOR.
+      		"img" .DIRECTORY_SEPARATOR. 
+      		"products" .DIRECTORY_SEPARATOR.
+      		 $this->getidproduct() . ".jpg"
+              )) {
+            
+            $url = "/res/site/img/products/" . $this->getidproduct().".jpg";
+      	}  
+   		else {
+   		 
+   		 $url =	"res/site/img/product.jpg";
+   		}
+      		
+      	return $this->setdesphoto($url);
+      }
+
+      public function getValues()
+      {
+      	$this->checkPhoto();
+        
+        $values = parent::getValues();
+        
+         return $values;
+      }
+
+      public function setPhoto($file){
+          $extensio =explode(".",($file["name"]));
+          $extensio =end($extensio);
+
+         switch ($extensio) {
+         	case 'jpg':
+         	case 'jpeg':
+         	$imagem = imagecreatefromjpeg($file["tmp_name"]);
+         		break;
+            case 'gif':
+             $imagem= imagecreatefromgif($file["tmp_name"]);		
+         	  break;
+         	 case 'png':
+         	  $imagem= imagecreatefrompng($file["tmp_name"]);
+         	  	break; 
+         }
+          $dist=$_SERVER['DOCUMENT_ROOT'] .DIRECTORY_SEPARATOR.
+      		"res" .DIRECTORY_SEPARATOR. 
+      		"site".DIRECTORY_SEPARATOR.
+      		"img" .DIRECTORY_SEPARATOR. 
+      		"products" .DIRECTORY_SEPARATOR.
+      		 $this->getidproduct() . ".jpg";
+
+
+         imagejpeg($imagem,$dist);
+         imagedestroy($imagem);
+
+         $this->checkPhoto();
+
+
+      }
+    
  }
 
 ?>
