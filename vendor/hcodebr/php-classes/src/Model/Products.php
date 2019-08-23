@@ -148,7 +148,7 @@ class Products extends Model {
       }
        
  
-      public function getCategories(){
+      public function getCategories(){ // obtem categorias do produto
 
             $sql= new Sql();
 
